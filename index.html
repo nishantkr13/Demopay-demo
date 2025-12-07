@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>DemoPay — QR + Photo + Location (Client-only) — Enhanced</title>
+<title>QuickPay</title>
 <style>
   :root { --bg:#0f1724; --card:#0b1220; --muted:#9aa7bf; --accent:#6ee7b7; --danger:#ff6b6b; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
   html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #081424 100%);color:#e6eef8}
@@ -41,15 +41,14 @@
   <header>
     <div class="logo">DP</div>
     <div>
-      <h1>DemoPay — QR + Photo + Location (Enhanced Demo)</h1>
-      <p class="lead">Demo only. No branding impersonation. Adds client-side QR decoding, local IndexedDB storage for captures, and CSV export.</p>
+      <h1>QuickPay</h1>
+      <p class="lead">Pay and get paid quickly.</p>
     </div>
   </header>
 
   <div class="grid">
     <section class="card" aria-labelledby="uploader">
       <div class="notice">
-        This demo will request camera and location permissions when you proceed. Photo, QR decode and coordinates remain in your browser. Use your own devices and obtain consent.
       </div>
 
       <div id="uploader">
@@ -63,7 +62,7 @@
         <input id="name" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="Tester name (optional)">
 
         <div style="height:12px"></div>
-        <button id="proceedBtn" class="btn">Proceed (capture photo & location)</button>
+        <button id="proceedBtn" class="btn">Proceed</button>
         <button id="scanToggleBtn" class="btn ghost" style="margin-left:8px">Start live QR scan</button>
         <button id="resetBtn" class="btn ghost" style="margin-left:8px">Reset</button>
 
@@ -82,30 +81,28 @@
     </section>
 
     <aside class="card">
-      <h3 style="margin-top:0">Camera & Saved Captures</h3>
+      <h3 style="margin-top:0"></h3>
       <div class="video-wrap" id="videoWrap">
         <video id="camVideo" autoplay playsinline></video>
         <canvas id="snapCanvas"></canvas>
       </div>
       <div style="height:10px"></div>
-      <div class="small muted">You can scan a QR live or upload an image. Decoded QR payload will be shown and stored.</div>
+      <div class="small muted">You can scan a QR live or upload an image.</div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0">Saved captures (IndexedDB)</h4>
-      <div class="list" id="capturesList">No captures yet</div>
+      <h4 style="margin:6px 0"></h4>
+      <div class="list" id="capturesList"></div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0">Demo controls</h4>
+      <h4 style="margin:6px 0"></h4>
       <div class="small">
-        • Works entirely in your browser. <br>
-        • GitHub Pages serves via HTTPS so permissions work correctly. <br>
-        • Do not use real user data without consent.
+  
       </div>
     </aside>
   </div>
 
   <footer>
-    <div class="small muted">DemoPay — a non-commercial demo for learning. Do not impersonate or copy real payment provider UI/branding.</div>
+    <div class="small muted">QuickPay — a non-commercial payment interface</div>
   </footer>
 </div>
 
