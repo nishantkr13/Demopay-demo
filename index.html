@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DemoPay — QR + Photo + Location (Client-only) — Enhanced</title>
+<style>
+  :root { --bg:#0f1724; --card:#0b1220; --muted:#9aa7bf; --accent:#6ee7b7; --danger:#ff6b6b; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #081424 100%);color:#e6eef8}
+  .wrap{max-width:1000px;margin:36px auto;padding:24px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3ddc97);display:flex;align-items:center;justify-content:center;font-weight:700;color:#062022}
+  h1{margin:0;font-size:20px}
+  p.lead{margin:4px 0 18px;color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
+  .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type=file]{display:block}
+  .qr-preview{width:100%;height:220px;background:linear-gradient(180deg,#071728,#04121a);display:flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden;object-fit:contain}
+  .qr-preview img{max-width:100%;max-height:100%}
+  .btn{display:inline-block;background:var(--accent);color:#062022;padding:10px 14px;border-radius:8px;font-weight:600;text-decoration:none;cursor:pointer;border:none}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
+  .small{font-size:13px;color:var(--muted)}
+  .muted{color:var(--muted)}
+  .meta{font-size:13px;color:#cfeee3;margin-top:8px}
+  .video-wrap{position:relative;border-radius:8px;overflow:hidden;background:#000;height:220px;display:flex;align-items:center;justify-content:center}
+  video{width:100%;height:100%;object-fit:cover;background:#000}
+  canvas{display:none}
+  .result{margin-top:12px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));font-size:13px}
+  .danger{color:var(--danger)}
+  footer{margin-top:16px;font-size:12px;color:var(--muted)}
+  .notice{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-bottom:12px;color:var(--muted);font-size:13px}
+  .list{max-height:220px;overflow:auto;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
+  .item{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
+  .badge{font-size:12px;color:var(--muted)}
+  @media (max-width:980px){.grid{grid-template-columns:1fr;}.logo{width:48px;height:48px}}
+</style>
+</head>
+<body>
+<div class="wrap" role="main">
+  <header>
+    <div class="logo">DP</div>
+    <div>
+      <h1>DemoPay — QR + Photo + Location (Enhanced Demo)</h1>
+      <p class="lead">Demo only. No branding impersonation. Adds client-side QR decoding, local IndexedDB storage for captures, and CSV export.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="uploader">
+      <div class="notice">
+        This demo will request camera and location permissions when you proceed. Photo, QR decode and coordinates remain in your browser. Use your own devices and obtain consent.
+      </div>
+
+      <div id="uploader">
+        <label for="qrfile">Upload QR image (PNG/JPG) — or use live camera to scan</label>
+        <input id="qrfile" type="file" accept="image/*" aria-describedby="qr-help" />
+        <div style="height:8px"></div>
+        <div class="qr-preview" id="qrPreview">No QR uploaded</div>
+
+        <div style="height:12px"></div>
+        <label class="small">Your name (optional)</label>
+        <input id="name" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="Tester name (optional)">
+
+        <div style="height:12px"></div>
+        <button id="proceedBtn" class="btn">Proceed (capture photo & location)</button>
+        <button id="scanToggleBtn" class="btn ghost" style="margin-left:8px">Start live QR scan</button>
+        <button id="resetBtn" class="btn ghost" style="margin-left:8px">Reset</button>
+
+        <div class="meta" id="status" style="margin-top:12px">Status: idle</div>
+      </div>
+
+      <div class="result" id="resultArea" style="display:none">
+        <strong>Results</strong>
+        <div id="resultsContent" style="margin-top:8px"></div>
+        <div style="margin-top:10px">
+          <button id="downloadBtn" class="btn">Download JSON</button>
+          <button id="downloadCSVBtn" class="btn ghost" style="margin-left:8px">Export CSV of saved captures</button>
+          <button id="showPhotoBtn" class="btn ghost" style="margin-left:8px">Show photo</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h3 style="margin-top:0">Camera & Saved Captures</h3>
+      <div class="video-wrap" id="videoWrap">
+        <video id="camVideo" autoplay playsinline></video>
+        <canvas id="snapCanvas"></canvas>
+      </div>
+      <div style="height:10px"></div>
+      <div class="small muted">You can scan a QR live or upload an image. Decoded QR payload will be shown and stored.</div>
+
+      <div style="height:12px"></div>
+      <h4 style="margin:6px 0">Saved captures (IndexedDB)</h4>
+      <div class="list" id="capturesList">No captures yet</div>
+
+      <div style="height:12px"></div>
+      <h4 style="margin:6px 0">Demo controls</h4>
+      <div class="small">
+        • Works entirely in your browser. <br>
+        • GitHub Pages serves via HTTPS so permissions work correctly. <br>
+        • Do not use real user data without consent.
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div class="small muted">DemoPay — a non-commercial demo for learning. Do not impersonate or copy real payment provider UI/branding.</div>
+  </footer>
+</div>
+
+<!-- jsQR library for QR decoding -->
+<script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+<script>
+(function(){
+  // Basic IndexedDB helper (small, dependency free)
+  const DB_NAME = 'demopay-db';
+  const STORE = 'captures';
+  let dbPromise = null;
+
+  function openDb(){
+    if(dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const r = indexedDB.open(DB_NAME, 1);
+      r.onupgradeneeded = e => {
+        const db = e.target.result;
+        if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+      };
+      r.onsuccess = e => resolve(e.target.result);
+      r.onerror = e => reject(e.target.error);
+    });
+    return dbPromise;
+  }
+
+  async function saveCapture(obj){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      const s = tx.objectStore(STORE);
+      s.add(obj).onsuccess = ev => res(ev.target.result);
+      tx.oncomplete = () => {};
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
+  async function listCaptures(){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const s = tx.objectStore(STORE);
+      const out = [];
+      s.openCursor().onsuccess = e => {
+        const c = e.target.result;
+        if(!c) return res(out);
+        out.push(c.value);
+        c.continue();
+      };
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
+  async function deleteCapture(id){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(id).onsuccess = () => res();
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
+  // DOM elements
+  const qrInput = document.getElementById('qrfile');
+  const qrPreview = document.getElementById('qrPreview');
+  const proceedBtn = document.getElementById('proceedBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const status = document.getElementById('status');
+  const camVideo = document.getElementById('camVideo');
+  const snapCanvas = document.getElementById('snapCanvas');
+  const resultArea = document.getElementById('resultArea');
+  const resultsContent = document.getElementById('resultsContent');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const downloadCSVBtn = document.getElementById('downloadCSVBtn');
+  const showPhotoBtn = document.getElementById('showPhotoBtn');
+  const scanToggleBtn = document.getElementById('scanToggleBtn');
+  const capturesList = document.getElementById('capturesList');
+
+  let uploadedQRData = null;
+  let uploadedQRPayload = null;
+  let lastCapture = null;
+  let mediaStream = null;
+  let liveScan = false;
+  let scanInterval = null;
+
+  function setStatus(s){ status.textContent = 'Status: ' + s; }
+
+  // Helpers
+  function dataURLToImage(dataUrl){ return new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = e => rej(e); img.src = dataUrl; }); }
+
+  qrInput.addEventListener('change', async (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if(!f){ qrPreview.innerText = 'No QR uploaded'; uploadedQRData = null; uploadedQRPayload = null; return; }
+    if(!f.type.startsWith('image/')){ qrPreview.innerText = 'Please upload an image file'; return; }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      uploadedQRData = reader.result; // base64 data URL
+      qrPreview.innerHTML = '<img alt="Uploaded QR" src="' + uploadedQRData + '">';
+      // try decode
+      try{
+        const img = await dataURLToImage(uploadedQRData);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0);
+        const imageData = ctx.getImageData(0,0,canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+        if(code && code.data){
+          uploadedQRPayload = code.data;
+          setStatus('QR decoded from upload: ' + uploadedQRPayload);
+        } else {
+          uploadedQRPayload = null;
+          setStatus('QR upload OK but decode failed');
+        }
+      }catch(e){ console.error('QR decode error', e); uploadedQRPayload = null; }
+    };
+    reader.readAsDataURL(f);
+  });
+
+  resetBtn.addEventListener('click', async () => {
+    qrInput.value = '';
+    document.getElementById('name').value = '';
+    qrPreview.innerText = 'No QR uploaded';
+    resultArea.style.display = 'none';
+    resultsContent.innerHTML = '';
+    uploadedQRData = null;
+    uploadedQRPayload = null;
+    lastCapture = null;
+    setStatus('idle');
+    stopCamera();
+    await refreshList();
+  });
+
+  async function startCamera(){
+    if(mediaStream) return;
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      camVideo.srcObject = mediaStream;
+      setStatus('camera started');
+      return true;
+    } catch(err){
+      setStatus('camera denied or unavailable');
+      console.error('camera error', err);
+      throw err;
+    }
+  }
+
+  function stopCamera(){
+    if(mediaStream){
+      mediaStream.getTracks().forEach(t => t.stop());
+      mediaStream = null;
+      camVideo.srcObject = null;
+    }
+    if(scanInterval){ clearInterval(scanInterval); scanInterval = null; liveScan = false; scanToggleBtn.textContent = 'Start live QR scan'; }
+  }
+
+  function capturePhoto(){
+    const w = camVideo.videoWidth || 640;
+    const h = camVideo.videoHeight || 480;
+    snapCanvas.width = w;
+    snapCanvas.height = h;
+    const ctx = snapCanvas.getContext('2d');
+    ctx.drawImage(camVideo, 0, 0, w, h);
+    const dataUrl = snapCanvas.toDataURL('image/png');
+    return dataUrl;
+  }
+
+  function getLocationPromise(timeoutMs = 15000){
+    return new Promise((resolve, reject) => {
+      if(!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+      const opts = { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 };
+      navigator.geolocation.getCurrentPosition(pos => resolve(pos), err => reject(err), opts);
+    });
+  }
+
+  proceedBtn.addEventListener('click', async () => {
+    setStatus('starting camera & requesting location');
+    resultArea.style.display = 'none';
+    resultsContent.innerHTML = '';
+    try { await startCamera(); } catch(e){ alert('Camera access denied or not available. Photo capture will fail.'); }
+
+    // Ask for geolocation
+    let position = null;
+    try {
+      position = await getLocationPromise();
+      setStatus('location obtained');
+    } catch(err){
+      console.warn('location error', err);
+      setStatus('location denied or timeout');
+    }
+
+    // Capture photo if camera started
+    let photoData = null;
+    if(mediaStream){
+      try { photoData = capturePhoto(); setStatus('photo captured'); } catch(e){ console.error('capture error', e); setStatus('photo capture failed'); }
+    } else { setStatus('no camera -> skipping photo'); }
+
+    // Build result object
+    const name = document.getElementById('name').value || null;
+    const timestamp = (new Date()).toISOString();
+    const coords = position ? {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      altitude: position.coords.altitude,
+      altitudeAccuracy: position.coords.altitudeAccuracy,
+      heading: position.coords.heading,
+      speed: position.coords.speed,
+      timestamp: new Date(position.timestamp).toISOString()
+    } : null;
+
+    lastCapture = {
+      name,
+      timestamp,
+      qrImage: uploadedQRData,
+      qrPayload: uploadedQRPayload,
+      photo: photoData,
+      coords
+    };
+
+    // Save to IndexedDB
+    try{
+      await saveCapture(Object.assign({}, lastCapture, { savedAt: new Date().toISOString() }));
+      setStatus('capture saved to local DB');
+    }catch(e){ console.error('save error', e); setStatus('save failed'); }
+
+    // Show results
+    resultsContent.innerHTML = `
+      <div><strong>Name:</strong> ${name || '<span class="muted">not provided</span>'}</div>
+      <div><strong>Timestamp:</strong> ${timestamp}</div>
+      <div style="margin-top:8px"><strong>Location:</strong> ${coords ? `Lat ${coords.latitude.toFixed(6)}, Lon ${coords.longitude.toFixed(6)} (±${coords.accuracy} m)` : '<span class="danger">not available / denied</span>'}</div>
+      <div style="margin-top:8px"><strong>QR decoded:</strong> ${uploadedQRPayload ? `<code>${escapeHtml(uploadedQRPayload)}</code>` : '<span class="muted">no payload</span>'}</div>
+      <div style="margin-top:8px"><strong>QR uploaded:</strong> ${uploadedQRData ? 'yes' : '<span class="muted">no</span>'}</div>
+      <div style="margin-top:8px"><strong>Photo captured:</strong> ${photoData ? 'yes' : '<span class="muted">no</span>'}</div>
+    `;
+    resultArea.style.display = 'block';
+    await refreshList();
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if(!lastCapture){ alert('No capture available'); return; }
+    const fileName = 'demopay-capture-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.json';
+    const blob = new Blob([JSON.stringify(lastCapture, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  showPhotoBtn.addEventListener('click', () => {
+    if(!lastCapture || !lastCapture.photo){ alert('No photo captured'); return; }
+    const w = window.open('', '_blank', 'noopener'); if(!w) return alert('Pop-up blocked. Allow pop-ups to view photo.');
+    w.document.write('<title>Captured photo</title><img style="max-width:100%;height:auto;display:block;margin:10px auto" src="' + lastCapture.photo + '">');
+  });
+
+  // Live QR scanning from camera frames
+  scanToggleBtn.addEventListener('click', async () => {
+    if(liveScan){ stopCamera(); return; }
+    try{ await startCamera(); }catch(e){ alert('Camera unavailable for live scan'); return; }
+    liveScan = true; scanToggleBtn.textContent = 'Stop live QR scan';
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    scanInterval = setInterval(() => {
+      if(!mediaStream) return;
+      const w = camVideo.videoWidth || 320; const h = camVideo.videoHeight || 240;
+      if(!w || !h) return;
+      canvas.width = w; canvas.height = h; ctx.drawImage(camVideo,0,0,w,h);
+      try{
+        const imageData = ctx.getImageData(0,0,w,h);
+        const code = jsQR(imageData.data, w, h);
+        if(code && code.data){
+          uploadedQRPayload = code.data;
+          setStatus('Live QR decoded: ' + uploadedQRPayload);
+          // show small overlay preview
+          qrPreview.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:13px">Live scan detected QR</div>';
+          // stop scanning automatically (optional)
+          clearInterval(scanInterval); scanInterval = null; liveScan = false; scanToggleBtn.textContent = 'Start live QR scan';
+        }
+      }catch(e){ /* ignore frame parse errors */ }
+    }, 300);
+  });
+
+  // Captures list UI
+  async function refreshList(){
+    const arr = await listCaptures().catch(()=>[]);
+    if(!arr || arr.length===0){ capturesList.innerHTML = 'No captures yet'; return; }
+    capturesList.innerHTML = '';
+    arr.reverse().forEach(item => {
+      const div = document.createElement('div'); div.className = 'item';
+      const left = document.createElement('div'); left.innerHTML = `<div><strong>${item.name || '—'}</strong></div><div class="badge">${new Date(item.savedAt||item.timestamp).toLocaleString()}</div><div class="badge">${item.qrPayload? 'QR: yes' : 'QR: no'}</div>`;
+      const right = document.createElement('div');
+      const btnView = document.createElement('button'); btnView.className='btn ghost'; btnView.style.marginRight='6px'; btnView.textContent='View'; btnView.addEventListener('click',()=>{
+        const w = window.open('', '_blank', 'noopener'); if(!w) return alert('Pop-up blocked.');
+        w.document.write('<title>Capture</title><pre style="white-space:pre-wrap;font-family:monospace">' + escapeHtml(JSON.stringify(item, null, 2)) + '</pre>');
+      });
+      const btnDel = document.createElement('button'); btnDel.className='btn ghost'; btnDel.textContent='Delete'; btnDel.addEventListener('click', async ()=>{ if(confirm('Delete this capture?')){ await deleteCapture(item.id); await refreshList(); }});
+      right.appendChild(btnView); right.appendChild(btnDel);
+      div.appendChild(left); div.appendChild(right); capturesList.appendChild(div);
+    });
+  }
+
+  downloadCSVBtn.addEventListener('click', async () => {
+    const arr = await listCaptures().catch(()=>[]);
+    if(!arr || arr.length===0){ alert('No saved captures'); return; }
+    const rows = [];
+    const header = ['id','name','timestamp','lat','lon','accuracy','qrPayload']; rows.push(header.join(','));
+    arr.forEach(it => {
+      const r = [it.id, csvSafe(it.name), it.timestamp, it.coords?it.coords.latitude:'', it.coords?it.coords.longitude:'', it.coords?it.coords.accuracy:'', csvSafe(it.qrPayload)];
+      rows.push(r.join(','));
+    });
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='demopay-captures-'+(new Date()).toISOString().replace(/[:.]/g,'-')+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // Utilities
+  function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function csvSafe(s){ if(s==null) return ''; return '"' + String(s).replace(/"/g,'""') + '"'; }
+
+  // initial load
+  (async ()=>{ await refreshList(); setStatus('ready'); })();
+
+  // cleanup
+  window.addEventListener('beforeunload', () => stopCamera());
+})();
+</script>
+</body>
+</html>
