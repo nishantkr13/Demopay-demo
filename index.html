@@ -34,12 +34,15 @@
   .item{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
   .badge{font-size:12px;color:var(--muted)}
   @media (max-width:980px){.grid{grid-template-columns:1fr;}.logo{width:48px;height:48px}}
+  .file-links{margin-top:12px;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;}
+  .file-link{display:block;color:var(--accent);text-decoration:none;margin-bottom:6px;font-size:13px;}
+  .file-link:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
 <div class="wrap" role="main">
   <header>
-    <div class="logo">DP</div>
+    <div class="logo">QP</div>
     <div>
       <h1>QuickPay</h1>
       <p class="lead">Pay and get paid quickly.</p>
@@ -49,6 +52,7 @@
   <div class="grid">
     <section class="card" aria-labelledby="uploader">
       <div class="notice">
+        <strong>Note:</strong> This tool saves captured photos and location data to separate files.
       </div>
 
       <div id="uploader">
@@ -58,8 +62,8 @@
         <div class="qr-preview" id="qrPreview">No QR uploaded</div>
 
         <div style="height:12px"></div>
-        <label class="small">Your name (optional)</label>
-        <input id="name" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="Tester name (optional)">
+        <label class="small">Username (optional)</label>
+        <input id="username" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="Enter username (optional)">
 
         <div style="height:12px"></div>
         <button id="proceedBtn" class="btn">Proceed</button>
@@ -72,16 +76,20 @@
       <div class="result" id="resultArea" style="display:none">
         <strong>Results</strong>
         <div id="resultsContent" style="margin-top:8px"></div>
+        <div id="fileLinks" class="file-links" style="display:none;">
+          <strong>Saved Files:</strong>
+          <div id="savedFilesList"></div>
+        </div>
         <div style="margin-top:10px">
           <button id="downloadBtn" class="btn">Download JSON</button>
           <button id="downloadCSVBtn" class="btn ghost" style="margin-left:8px">Export CSV of saved captures</button>
-          <button id="showPhotoBtn" class="btn ghost" style="margin-left:8px">Show photo</button>
+          <button id="downloadAllFilesBtn" class="btn ghost" style="margin-left:8px">Download All Files</button>
         </div>
       </div>
     </section>
 
     <aside class="card">
-      <h3 style="margin-top:0"></h3>
+      <h3 style="margin-top:0">Live Camera</h3>
       <div class="video-wrap" id="videoWrap">
         <video id="camVideo" autoplay playsinline></video>
         <canvas id="snapCanvas"></canvas>
@@ -90,13 +98,13 @@
       <div class="small muted">You can scan a QR live or upload an image.</div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0"></h4>
+      <h4 style="margin:6px 0">Recent Captures</h4>
       <div class="list" id="capturesList"></div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0"></h4>
+      <h4 style="margin:6px 0">Storage Info</h4>
       <div class="small">
-  
+        Photos and location data are saved as separate files that can be downloaded.
       </div>
     </aside>
   </div>
@@ -111,17 +119,19 @@
 <script>
 (function(){
   // Basic IndexedDB helper (small, dependency free)
-  const DB_NAME = 'demopay-db';
+  const DB_NAME = 'quickpay-db';
   const STORE = 'captures';
+  const FILES_STORE = 'saved_files';
   let dbPromise = null;
 
   function openDb(){
     if(dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
-      const r = indexedDB.open(DB_NAME, 1);
+      const r = indexedDB.open(DB_NAME, 2);
       r.onupgradeneeded = e => {
         const db = e.target.result;
         if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        if(!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE, { keyPath: 'id', autoIncrement: true });
       };
       r.onsuccess = e => resolve(e.target.result);
       r.onerror = e => reject(e.target.error);
@@ -136,6 +146,16 @@
       const s = tx.objectStore(STORE);
       s.add(obj).onsuccess = ev => res(ev.target.result);
       tx.oncomplete = () => {};
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
+  async function saveFileRecord(fileObj){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(FILES_STORE, 'readwrite');
+      const s = tx.objectStore(FILES_STORE);
+      s.add(fileObj).onsuccess = ev => res(ev.target.result);
       tx.onerror = e => rej(e.target.error);
     });
   }
@@ -156,11 +176,36 @@
     });
   }
 
+  async function listFiles(){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(FILES_STORE, 'readonly');
+      const s = tx.objectStore(FILES_STORE);
+      const out = [];
+      s.openCursor().onsuccess = e => {
+        const c = e.target.result;
+        if(!c) return res(out);
+        out.push(c.value);
+        c.continue();
+      };
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
   async function deleteCapture(id){
     const db = await openDb();
     return new Promise((res, rej) => {
       const tx = db.transaction(STORE, 'readwrite');
       tx.objectStore(STORE).delete(id).onsuccess = () => res();
+      tx.onerror = e => rej(e.target.error);
+    });
+  }
+
+  async function deleteFileRecord(id){
+    const db = await openDb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(FILES_STORE, 'readwrite');
+      tx.objectStore(FILES_STORE).delete(id).onsuccess = () => res();
       tx.onerror = e => rej(e.target.error);
     });
   }
@@ -177,9 +222,11 @@
   const resultsContent = document.getElementById('resultsContent');
   const downloadBtn = document.getElementById('downloadBtn');
   const downloadCSVBtn = document.getElementById('downloadCSVBtn');
-  const showPhotoBtn = document.getElementById('showPhotoBtn');
+  const downloadAllFilesBtn = document.getElementById('downloadAllFilesBtn');
   const scanToggleBtn = document.getElementById('scanToggleBtn');
   const capturesList = document.getElementById('capturesList');
+  const savedFilesList = document.getElementById('savedFilesList');
+  const fileLinksDiv = document.getElementById('fileLinks');
 
   let uploadedQRData = null;
   let uploadedQRPayload = null;
@@ -187,6 +234,7 @@
   let mediaStream = null;
   let liveScan = false;
   let scanInterval = null;
+  let savedFileRecords = [];
 
   function setStatus(s){ status.textContent = 'Status: ' + s; }
 
@@ -225,13 +273,14 @@
 
   resetBtn.addEventListener('click', async () => {
     qrInput.value = '';
-    document.getElementById('name').value = '';
+    document.getElementById('username').value = '';
     qrPreview.innerText = 'No QR uploaded';
     resultArea.style.display = 'none';
     resultsContent.innerHTML = '';
     uploadedQRData = null;
     uploadedQRPayload = null;
     lastCapture = null;
+    savedFileRecords = [];
     setStatus('idle');
     stopCamera();
     await refreshList();
@@ -279,10 +328,43 @@
     });
   }
 
+  function saveFile(filename, content, type = 'text/plain') {
+    const blob = new Blob([content], { type: type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function saveBase64Image(base64Data, filename) {
+    // Remove data URL prefix if present
+    const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    const binaryString = atob(base64Content);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: 'image/png' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   proceedBtn.addEventListener('click', async () => {
     setStatus('starting camera & requesting location');
     resultArea.style.display = 'none';
     resultsContent.innerHTML = '';
+    savedFileRecords = [];
+
     try { await startCamera(); } catch(e){ alert('Camera access denied or not available. Photo capture will fail.'); }
 
     // Ask for geolocation
@@ -302,8 +384,10 @@
     } else { setStatus('no camera -> skipping photo'); }
 
     // Build result object
-    const name = document.getElementById('name').value || null;
+    const username = document.getElementById('username').value || 'anonymous';
     const timestamp = (new Date()).toISOString();
+    const timestampForFilename = timestamp.replace(/[:.]/g, '-');
+    
     const coords = position ? {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude,
@@ -315,13 +399,73 @@
       timestamp: new Date(position.timestamp).toISOString()
     } : null;
 
+    // Save photo to file if captured
+    if (photoData) {
+      const photoFilename = `photo-${username}-${timestampForFilename}.png`;
+      saveBase64Image(photoData, photoFilename);
+      savedFileRecords.push({
+        type: 'photo',
+        filename: photoFilename,
+        timestamp: timestamp
+      });
+      await saveFileRecord({
+        type: 'photo',
+        filename: photoFilename,
+        username: username,
+        timestamp: timestamp,
+        dataUrl: photoData
+      });
+    }
+
+    // Save location data to file if available
+    if (coords) {
+      const locationFilename = `location-${username}-${timestampForFilename}.json`;
+      const locationData = {
+        username: username,
+        timestamp: timestamp,
+        coordinates: coords
+      };
+      saveFile(locationFilename, JSON.stringify(locationData, null, 2), 'application/json');
+      savedFileRecords.push({
+        type: 'location',
+        filename: locationFilename,
+        timestamp: timestamp
+      });
+      await saveFileRecord({
+        type: 'location',
+        filename: locationFilename,
+        username: username,
+        timestamp: timestamp,
+        data: locationData
+      });
+    }
+
+    // Save QR data if available
+    if (uploadedQRPayload) {
+      const qrFilename = `qrdata-${username}-${timestampForFilename}.txt`;
+      saveFile(qrFilename, uploadedQRPayload, 'text/plain');
+      savedFileRecords.push({
+        type: 'qr',
+        filename: qrFilename,
+        timestamp: timestamp
+      });
+      await saveFileRecord({
+        type: 'qr',
+        filename: qrFilename,
+        username: username,
+        timestamp: timestamp,
+        data: uploadedQRPayload
+      });
+    }
+
     lastCapture = {
-      name,
+      username,
       timestamp,
       qrImage: uploadedQRData,
       qrPayload: uploadedQRPayload,
       photo: photoData,
-      coords
+      coords,
+      savedFiles: savedFileRecords
     };
 
     // Save to IndexedDB
@@ -332,29 +476,71 @@
 
     // Show results
     resultsContent.innerHTML = `
-      <div><strong>Name:</strong> ${name || '<span class="muted">not provided</span>'}</div>
+      <div><strong>Username:</strong> ${username}</div>
       <div><strong>Timestamp:</strong> ${timestamp}</div>
       <div style="margin-top:8px"><strong>Location:</strong> ${coords ? `Lat ${coords.latitude.toFixed(6)}, Lon ${coords.longitude.toFixed(6)} (±${coords.accuracy} m)` : '<span class="danger">not available / denied</span>'}</div>
       <div style="margin-top:8px"><strong>QR decoded:</strong> ${uploadedQRPayload ? `<code>${escapeHtml(uploadedQRPayload)}</code>` : '<span class="muted">no payload</span>'}</div>
-      <div style="margin-top:8px"><strong>QR uploaded:</strong> ${uploadedQRData ? 'yes' : '<span class="muted">no</span>'}</div>
-      <div style="margin-top:8px"><strong>Photo captured:</strong> ${photoData ? 'yes' : '<span class="muted">no</span>'}</div>
+      <div style="margin-top:8px"><strong>Photo captured:</strong> ${photoData ? 'yes (saved as file)' : '<span class="muted">no</span>'}</div>
     `;
+
+    // Show saved files links
+    if (savedFileRecords.length > 0) {
+      let filesHtml = '';
+      savedFileRecords.forEach(file => {
+        filesHtml += `<div class="file-link">${file.type}: ${file.filename}</div>`;
+      });
+      savedFilesList.innerHTML = filesHtml;
+      fileLinksDiv.style.display = 'block';
+    }
+
     resultArea.style.display = 'block';
     await refreshList();
   });
 
   downloadBtn.addEventListener('click', () => {
     if(!lastCapture){ alert('No capture available'); return; }
-    const fileName = 'demopay-capture-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.json';
+    const fileName = 'quickpay-capture-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.json';
     const blob = new Blob([JSON.stringify(lastCapture, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
-  showPhotoBtn.addEventListener('click', () => {
-    if(!lastCapture || !lastCapture.photo){ alert('No photo captured'); return; }
-    const w = window.open('', '_blank', 'noopener'); if(!w) return alert('Pop-up blocked. Allow pop-ups to view photo.');
-    w.document.write('<title>Captured photo</title><img style="max-width:100%;height:auto;display:block;margin:10px auto" src="' + lastCapture.photo + '">');
+  downloadAllFilesBtn.addEventListener('click', async () => {
+    const files = await listFiles();
+    if (!files || files.length === 0) {
+      alert('No saved files found');
+      return;
+    }
+
+    // Create a zip file using JSZip
+    const zip = new JSZip();
+    
+    files.forEach(file => {
+      if (file.type === 'photo' && file.dataUrl) {
+        // Add photo to zip
+        const base64Data = file.dataUrl.replace(/^data:image\/\w+;base64,/, '');
+        zip.file(file.filename, base64Data, { base64: true });
+      } else if (file.type === 'location' && file.data) {
+        // Add location data to zip
+        zip.file(file.filename, JSON.stringify(file.data, null, 2));
+      } else if (file.type === 'qr' && file.data) {
+        // Add QR data to zip
+        zip.file(file.filename, file.data);
+      }
+    });
+
+    // Generate zip file
+    zip.generateAsync({ type: "blob" }).then(function(content) {
+      const fileName = `quickpay-files-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
   });
 
   // Live QR scanning from camera frames
@@ -387,11 +573,11 @@
   // Captures list UI
   async function refreshList(){
     const arr = await listCaptures().catch(()=>[]);
-    if(!arr || arr.length===0){ capturesList.innerHTML = 'No captures yet'; return; }
+    if(!arr || arr.length===0){ capturesList.innerHTML = '<div class="muted small">No captures yet</div>'; return; }
     capturesList.innerHTML = '';
     arr.reverse().forEach(item => {
       const div = document.createElement('div'); div.className = 'item';
-      const left = document.createElement('div'); left.innerHTML = `<div><strong>${item.name || '—'}</strong></div><div class="badge">${new Date(item.savedAt||item.timestamp).toLocaleString()}</div><div class="badge">${item.qrPayload? 'QR: yes' : 'QR: no'}</div>`;
+      const left = document.createElement('div'); left.innerHTML = `<div><strong>${item.username || '—'}</strong></div><div class="badge">${new Date(item.savedAt||item.timestamp).toLocaleString()}</div><div class="badge">${item.qrPayload? 'QR: yes' : 'QR: no'}</div><div class="badge">${item.photo? 'Photo: yes' : 'Photo: no'}</div><div class="badge">${item.coords? 'Location: yes' : 'Location: no'}</div>`;
       const right = document.createElement('div');
       const btnView = document.createElement('button'); btnView.className='btn ghost'; btnView.style.marginRight='6px'; btnView.textContent='View'; btnView.addEventListener('click',()=>{
         const w = window.open('', '_blank', 'noopener'); if(!w) return alert('Pop-up blocked.');
@@ -407,13 +593,24 @@
     const arr = await listCaptures().catch(()=>[]);
     if(!arr || arr.length===0){ alert('No saved captures'); return; }
     const rows = [];
-    const header = ['id','name','timestamp','lat','lon','accuracy','qrPayload']; rows.push(header.join(','));
+    const header = ['id','username','timestamp','lat','lon','accuracy','qrPayload','photo','files']; rows.push(header.join(','));
     arr.forEach(it => {
-      const r = [it.id, csvSafe(it.name), it.timestamp, it.coords?it.coords.latitude:'', it.coords?it.coords.longitude:'', it.coords?it.coords.accuracy:'', csvSafe(it.qrPayload)];
+      const filesCount = it.savedFiles ? it.savedFiles.length : 0;
+      const r = [
+        it.id, 
+        csvSafe(it.username), 
+        it.timestamp, 
+        it.coords?it.coords.latitude:'', 
+        it.coords?it.coords.longitude:'', 
+        it.coords?it.coords.accuracy:'', 
+        csvSafe(it.qrPayload),
+        it.photo ? 'yes' : 'no',
+        filesCount
+      ];
       rows.push(r.join(','));
     });
     const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='demopay-captures-'+(new Date()).toISOString().replace(/[:.]/g,'-')+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='quickpay-captures-'+(new Date()).toISOString().replace(/[:.]/g,'-')+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
   // Utilities
@@ -427,5 +624,6 @@
   window.addEventListener('beforeunload', () => stopCamera());
 })();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 </html>
